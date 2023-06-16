@@ -24,8 +24,8 @@ features:
     column: "bedrooms"
     type: numerical
     transforms:
-      - impute
-      - scale
+      - SimpleImputer
+      - StandardScaler
   bedrooms_categorical:
     column: "bedrooms"
     type: categorical
