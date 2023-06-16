@@ -90,6 +90,9 @@ def validate_feature(feature_def):
         if key not in feature_def:
             raise TypeError("Missing required key '{}'".format(key))
             
+    if not isinstance(feature_def["column"], str):
+        raise TypeError("Feature column names must be specified as strings.")
+            
     allowed_types = ["numerical", "categorical", "string", "date", "datetime"]
     if feature_df["type"] not in allowed_type:
         raise ValueError("'{}' is not one of the allowed feature types: {}".format(feature_df["type"], ", ".join(allowed_types)))
