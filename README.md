@@ -15,7 +15,7 @@ format as the training data.
 ```yaml
 ml_problem:
   label_column: price
-  model_type: regression
+  output_variable_type: regression
 model:
   type: Random Forest
   n_estimators: 100

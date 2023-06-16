@@ -20,6 +20,7 @@ import argparse
 import pprint
 
 from siegfried.mdl import load_mdl
+from siegfried.mdl import validate_mdl
 
 def parse_args():
     parser = argparse.ArgumentParser()
@@ -53,6 +54,8 @@ def train_model(mdl_fl):
     model_def = load_mdl(mdl_fl)
     
     pprint.pprint(model_def)
+    
+    print("Validated: {}".format(validate_mdl(model_def)))
 
 if __name__ == "__main__":
     args = parse_args()

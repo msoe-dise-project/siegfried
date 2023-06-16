@@ -16,7 +16,9 @@ limitations under the License.
 
 import yaml
 
-__all__ = ["load_mdl"]
+from .parser import validate_mdl
+
+__all__ = ["load_mdl", "validate_mdl"]
 
 def load_mdl(flname):
     with open(flname, "rt") as fl:
