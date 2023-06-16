@@ -22,20 +22,20 @@ ml_model:
 features:
   bedrooms_int:
     column: "bedrooms"
-    format: numerical
+    type: numerical
     transforms:
       - impute
       - scale
   bedrooms_categorical:
     column: "bedrooms"
-    format: categorical
+    type: categorical
     drop_one: true
   bathrooms_categorical:
     column: "bathrooms"
-    format: categorical
+    type: categorical
   description_bow:
     column: "description"
-    format: string
+    type: string
     transforms:
       - CountVectorizer:
           analyzer: word
