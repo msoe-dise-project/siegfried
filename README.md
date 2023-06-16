@@ -16,8 +16,8 @@ format as the training data.
 ml_problem:
   label_column: price
   output_variable_type: regression
-model:
-  type: Random Forest
+ml_model:
+  model_type: RandomForestClassifier
   n_estimators: 100
 features:
   bedrooms_int:
