@@ -30,6 +30,7 @@ def validate_mdl(model_def):
             
     validate_ml_problem(model_def["ml_problem"])
     validate_ml_model(model_def["ml_model"])
+    validate_features(model_def["features"])
             
     return True
     
@@ -60,9 +61,11 @@ def validate_ml_model(model_def):
         if key not in model_def:
             raise TypeError("Missing required key '{}'".format(key))
     
-    allowed_model_types = ["RandomForestClassifier",
+    allowed_model_types = ["DummyClassifier",
+                           "RandomForestClassifier",
                            "LogisticRegressionNormal",
                            "LogisticRegressionSGD",
+                           "DummyRegressor",
                            "RandomForestRegressor",
                            "LinearRegressionNormal",
                            "LinearRegressionSGD"]
@@ -93,7 +96,7 @@ def validate_feature(feature_def):
     if not isinstance(feature_def["column"], str):
         raise TypeError("Feature column names must be specified as strings.")
             
-    allowed_types = ["numerical", "categorical", "string", "date", "datetime"]
+    allowed_types = ["numerical", "categorical"]
     if feature_df["type"] not in allowed_type:
         raise ValueError("'{}' is not one of the allowed feature types: {}".format(feature_df["type"], ", ".join(allowed_types)))
     
