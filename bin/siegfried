@@ -55,7 +55,8 @@ def train_model(mdl_fl):
     
     pprint.pprint(model_def)
     
-    print("Validated: {}".format(validate_mdl(model_def)))
+    feature_graph = validate_mdl(model_def)
+    
 
 if __name__ == "__main__":
     args = parse_args()

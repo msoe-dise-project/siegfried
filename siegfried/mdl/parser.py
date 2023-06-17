@@ -16,6 +16,11 @@ limitations under the License.
 
 from collections import abc
 
+from .feature_graph import InputFeature
+from .feature_graph import NumericalFeature
+from .feature_graph import CategoricalFeature
+from .feature_graph import ConcatenateFeatures
+
 # Implements a recursive-descent parser for validating
 # the model definition language file
 
@@ -32,9 +37,9 @@ def validate_mdl(model_def):
         raise TypeError("Target column must be specified as a string.")
     
     validate_ml_model(model_def["ml_model"])
-    validate_features(model_def["features"])
-            
-    return True
+    feature_graph = validate_features(model_def["features"])
+    
+    return feature_graph
 
 def validate_ml_model(model_def):
     if not isinstance(model_def, abc.Mapping):
@@ -66,9 +71,14 @@ def validate_features(features_def):
         if not isinstance(key, str):
             raise TypeError("Feature names must be specified as strings.")
     
-    return True
+    all_outputs = []
+    for output_name, feature_def in features_def.items():
+        feature_node = validate_feature(output_name, feature_def)
+        all_outputs.append(feature_node)
     
-def validate_feature(feature_def):
+    return ConcatenateFeatures(all_outputs)
+    
+def validate_feature(output_name, feature_def):
     if not isinstance(feature_def, abc.Mapping):
         raise TypeError("Feature definition object must be of type Mappable")
     
@@ -79,9 +89,14 @@ def validate_feature(feature_def):
             
     if not isinstance(feature_def["column"], str):
         raise TypeError("Feature column names must be specified as strings.")
-            
-    allowed_types = ["numerical", "categorical"]
-    if feature_df["type"] not in allowed_type:
-        raise ValueError("'{}' is not one of the allowed feature types: {}".format(feature_df["type"], ", ".join(allowed_types)))
+        
+    input_node = InputFeature(feature_def["column"], feature_def["column"])
+    
+    if feature_def["type"] == "numerical":
+        return NumericalFeature(output_name, feature_def["column"])
+    elif feature_def["type"] == "categorical":
+        return CategoricalFeature(output_name, feature_def["column"])
+    else:
+        raise ValueError("'{}' is not one of the allowed feature types".format(feature_df["type"]))
     
     return True
