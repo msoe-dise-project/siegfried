@@ -13,9 +13,7 @@ format as the training data.
 ## Model Definition Language (MDL)
 
 ```yaml
-ml_problem:
-  label_column: price
-  output_variable_type: regression
+target_column: price
 ml_model:
   model_type: RandomForestClassifier
   n_estimators: 100

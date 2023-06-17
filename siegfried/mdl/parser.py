@@ -24,32 +24,16 @@ def validate_mdl(model_def):
         raise TypeError("Model definition object must be of type Mappable")
     
     # check for required keys
-    for key in ["ml_problem", "ml_model", "features"]:
+    for key in ["target_column", "ml_model", "features"]:
         if key not in model_def:
             raise TypeError("Missing required key '{}'".format(key))
             
-    validate_ml_problem(model_def["ml_problem"])
+    if not isinstance(model_def["target_column"], str):
+        raise TypeError("Target column must be specified as a string.")
+    
     validate_ml_model(model_def["ml_model"])
     validate_features(model_def["features"])
             
-    return True
-    
-def validate_ml_problem(problem_def):
-    if not isinstance(problem_def, abc.Mapping):
-        raise TypeError("ML problem definition object must be of type Mappable")
-    
-    # check for required keys
-    for key in ["label_column", "output_variable_type"]:
-        if key not in problem_def:
-            raise TypeError("Missing required key '{}'".format(key))
-    
-    allowed_output_types = ["regression", "classification_binary", "classification_probability"]
-    if problem_def["output_variable_type"] not in allowed_output_types:
-        raise ValueError("Only the output variable types 'regression', 'classification_binary', and 'classification_probability' are allowed")
-    
-    if not isinstance(problem_def["label_column"], str):
-        raise TypeError("Label column must be specified as a string.")
-    
     return True
 
 def validate_ml_model(model_def):
