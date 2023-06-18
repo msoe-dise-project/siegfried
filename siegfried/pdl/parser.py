@@ -21,10 +21,10 @@ from .feature_graph import NumericalFeature
 from .feature_graph import CategoricalFeature
 from .feature_graph import ConcatenateFeatures
 
-# Implements a recursive-descent parser for validating
-# the model definition language file
+# Implements a recursive-descent parser for the
+# model definition language file
 
-def validate_mdl(model_def):
+def parse_mdl(model_def):
     if not isinstance(model_def, abc.Mapping):
         raise TypeError("Model definition object must be of type Mappable")
     
@@ -36,12 +36,12 @@ def validate_mdl(model_def):
     if not isinstance(model_def["target_column"], str):
         raise TypeError("Target column must be specified as a string.")
     
-    validate_ml_model(model_def["ml_model"])
-    feature_graph = validate_features(model_def["features"])
+    parse_ml_model(model_def["ml_model"])
+    feature_graph = parse_features(model_def["features"])
     
     return feature_graph
 
-def validate_ml_model(model_def):
+def parse_ml_model(model_def):
     if not isinstance(model_def, abc.Mapping):
         raise TypeError("ML model definition object must be of type Mappable")
     
@@ -63,7 +63,7 @@ def validate_ml_model(model_def):
     
     return True
     
-def validate_features(features_def):
+def parse_features(features_def):
     if not isinstance(features_def, abc.Mapping):
         raise TypeError("ML model definition object must be of type Mappable")
     
@@ -73,12 +73,12 @@ def validate_features(features_def):
     
     all_outputs = []
     for output_name, feature_def in features_def.items():
-        feature_node = validate_feature(output_name, feature_def)
+        feature_node = parse_feature(output_name, feature_def)
         all_outputs.append(feature_node)
     
     return ConcatenateFeatures(all_outputs)
     
-def validate_feature(output_name, feature_def):
+def parse_feature(output_name, feature_def):
     if not isinstance(feature_def, abc.Mapping):
         raise TypeError("Feature definition object must be of type Mappable")
     

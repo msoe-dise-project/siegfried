@@ -19,8 +19,8 @@ limitations under the License.
 import argparse
 import pprint
 
-from siegfried.mdl import load_mdl
-from siegfried.mdl import validate_mdl
+from siegfried.pdl import load_pdl
+from siegfried.pdl import parse_pdl
 
 def parse_args():
     parser = argparse.ArgumentParser()
@@ -39,10 +39,10 @@ def parse_args():
                                      type=str,
                                      help="Tabular input data in CSV format")
                                      
-    parser.add_argument("--mdl-fl",
+    parser.add_argument("--pdl-fl",
                         type=str,
                         required=True,
-                        help="Model definition language YAML file")
+                        help="Pipeline definition language YAML file")
     
     parser.add_argument("--serialized-output",
                         type=str,
@@ -50,18 +50,18 @@ def parse_args():
                         
     return parser.parse_args()
     
-def train_model(mdl_fl):
-    model_def = load_mdl(mdl_fl)
+def train_model(pdl_fl):
+    pipeline_def = load_pdl(pdl_fl)
     
-    pprint.pprint(model_def)
+    pprint.pprint(pipeline_def)
     
-    feature_graph = validate_mdl(model_def)
+    feature_graph = parse_pdl(pipeline_def)
     
 
 if __name__ == "__main__":
     args = parse_args()
     
-    train_model(args.mdl_fl)
+    train_model(args.pdl_fl)
     
     
     

@@ -10,7 +10,7 @@ A model definition specifies:
 1. The software outputs a serialized pipeline for generating predictions on tabular data in the same
 format as the training data.
 
-## Model Definition Language (MDL)
+## Pipeline Definition Language (PDL)
 
 ```yaml
 target_column: price
