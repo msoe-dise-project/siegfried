@@ -19,37 +19,46 @@ import pandas as pd
 from sklearn.preprocessing import LabelEncoder
 from sklearn.preprocessing import OneHotEncoder
 
+all = ["Variable", "CategoricalInputVariable", "NumericalVariable", "ConcatenateVariables",
+       "CategoricalOutputVariable", "OutputVariable", "DataGraph"]
+
 class Variable:
-    def __init__(self, output_name, column_name):
-        self.output_name = output_name
+    def __init__(self, column_name, output_name = None):
         self.column_name = column_name
+        if output_name is None:
+            output_name = column_name
+        self.output_name = output_name
         
     def fit_transform(self, df):
-        return self.df
+        return self.transform(df)
     
     def transform(self, df):
         df = df[[self.column_name]]
-        df = df.rename({ self.column_name : self.output_name })
-        return (self.output_name, df)
+        df.columns = [self.output_name]
+        return df
         
 class CategoricalInputVariable:
-    def __init__(self, output_name, parent):
-        self.output_name = output_name
+    def __init__(self, parent, prefix=None):
+        self.prefix = prefix
         self.parent = parent
     
     def fit_transform(self, df):
-        parent_name, parent_df = self.parent.get(df)
+        parent_df = self.parent.fit_transform(df)
         self.encoder = OneHotEncoder(sparse_output=False).set_output(transform="pandas")
         dummies_df = self.encoder.fit_transform(parent_df)
-        return (self.output_name, dummies_df)
+        if self.prefix is None:
+            self.prefix = parent_df.columns[0]
+        dummies_df.columns = [self.prefix + "_" + c for c in dummies_df.columns]
+        return dummies_df
         
     def transform(self, df):
-        parent_name, parent_df = self.parent.get(df)
-        dummies_df = self.encoder.fit_transform(parent_df)
-        return (self.output_name, dummies_df)
+        parent_df = self.parent.transform(df)
+        dummies_df = self.encoder.transform(parent_df)
+        dummies_df.columns = [self.prefix + "_" + c for c in dummies_df.columns]
+        return dummie_df
         
 class NumericalVariable:
-    def __init__(self, output_name, parent):
+    def __init__(self, parent, output_name=None):
         self.output_name = output_name
         self.parent = parent
     
@@ -57,10 +66,11 @@ class NumericalVariable:
         return self.transform(df)
     
     def transform(self, df):
-        parent_name, parent_df = self.parent.get(df)
+        parent_df = self.parent.transform(df)
         df = parent_df.astype("float32")
-        output_df = df.rename({ self.column_name : self.output_name })
-        return (self.output_name, output_df)
+        if self.output_name is not None:
+            df.columns = [self.output_name]
+        return df
         
 class ConcatenateVariables:
     def __init__(self, parents):

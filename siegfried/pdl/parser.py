@@ -16,15 +16,12 @@ limitations under the License.
 
 from collections import abc
 
-from .feature_graph import InputFeature
-from .feature_graph import NumericalFeature
-from .feature_graph import CategoricalFeature
-from .feature_graph import ConcatenateFeatures
+from .feature_graph import *
 
 # Implements a recursive-descent parser for the
 # model definition language file
 
-def parse_mdl(model_def):
+def parse_pdl(model_def):
     if not isinstance(model_def, abc.Mapping):
         raise TypeError("Model definition object must be of type Mappable")
     

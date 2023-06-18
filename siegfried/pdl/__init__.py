@@ -16,7 +16,7 @@ limitations under the License.
 
 import yaml
 
-from .parser import parse_dl
+from .parser import parse_pdl
 
 __all__ = ["load_pdl", "parse_pdl"]
 
