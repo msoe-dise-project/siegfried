@@ -53,7 +53,7 @@ class CategoricalInputVariable:
         dummies_df = self.encoder.transform(parent_df)
         return dummie_df
         
-class NumericalVariable:
+class NumericalInputVariable:
     def __init__(self, parent, output_name=None):
         self.output_name = output_name
         self.parent = parent
@@ -112,16 +112,20 @@ class CategoricalOutputVariable:
             encoded_df.columns = [self.output_name]
         return encoded_df
 
-class OutputVariable:
+class NumericalOutputVariable:
     def __init__(self, parent):
         self.parent = parent
     
     def fit_transform(self, df):
-        return self.transform(df)
+        parent_df = self.parent.fit_transform(df)
+        df = parent_df.astype("float32")
+        series = df[df.columns[0]]
+        return series
         
     def transform(self, df):
         parent_df = self.parent.transform(df)
-        series = parent_df[parent_name]
+        df = parent_df.astype("float32")
+        series = df[df.columns[0]]
         return series
         
 class DataGraph:
@@ -129,13 +133,12 @@ class DataGraph:
         self.input_graph = feature_graph
         self.output_graph = output_graph
         
-    def fit_transform(self, X, y):
-        input_df = self.input_graph.fit_transform(X)
-        output_series = self.output_graph.fit_transform(y)
-        return input_df, output_series
+    def fit_transform(self, df):
+        input_df = self.input_graph.fit_transform(df)
+        output_series = self.output_graph.fit_transform(df)
+        return output_series, input_df
     
-    def transform(self, X, y):
-        input_df = self.input_graph.transform(X)
-        output_series = self.output_graph.transform(y)
-        return input_df, output_series
-    
+    def transform(self, df):
+        input_df = self.input_graph.transform(df)
+        output_series = self.output_graph.transform(df)
+        return output_series, input_df
