@@ -18,6 +18,11 @@ from collections import abc
 
 from ..data_graph import *
 
+from sklearn.dummy import DummyClassifier
+from sklearn.dummy import DummyRegressor
+from sklearn.ensemble import RandomForestClassifier
+from sklearn.ensemble import RandomForestRegressor
+
 # Implements a recursive-descent parser for the
 # model definition language file
 
@@ -30,7 +35,7 @@ def parse_pdl(pipeline_def):
         if key not in pipeline_def:
             raise TypeError("Missing required key '{}'".format(key))
     
-    parse_ml_model(pipeline_def["ml_model"])
+    model = parse_ml_model(pipeline_def["ml_model"])
     input_graph = parse_input_variables(pipeline_def["input_variables"])
     output_graph = parse_output_variable(pipeline_def["output_variable"])
     
@@ -70,18 +75,30 @@ def parse_ml_model(model_def):
         if key not in model_def:
             raise TypeError("Missing required key '{}'".format(key))
     
-    allowed_model_types = ["DummyClassifier",
-                           "RandomForestClassifier",
-                           "LogisticRegressionNormal",
-                           "LogisticRegressionSGD",
-                           "DummyRegressor",
-                           "RandomForestRegressor",
-                           "LinearRegressionNormal",
-                           "LinearRegressionSGD"]
-    if model_def["model_type"] not in allowed_model_types:
-        raise ValueError("Only the model types {} are allowed".format(", ".join(allowed_model_types)))
+    if model_def["model_type"] == "DummyClassifier":
+        return parse_dummy_classifier(model_def)
+    elif model_def["model_type"] == "RandomForestClassifier":
+        return parse_rf_classifier(model_def)
+    elif model_def["model_type"] == "DummyRegressor":
+        return parse_dummy_regressor(model_def)
+    elif model_def["model_type"] == "RandomForestRegressor":
+        return parse_rf_regressor(model_def)
+    else:
+        raise ValueError("Unknown model type '{}'".format(model_def["model_type"]))
     
     return True
+    
+def parse_dummy_classifier(model_def):
+    return DummyClassifier()
+    
+def parse_rf_classifier(model_def):
+    return RandomForestClassifier()
+    
+def parse_dummy_regressor(model_def):
+    return DummyRegressor()
+
+def parse_rf_regressor(model_def):
+    return RandomForestRegressor()
     
 def parse_input_variables(input_variables_def):
     if not isinstance(input_variables_def, abc.Mapping):
