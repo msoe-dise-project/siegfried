@@ -19,7 +19,7 @@ import unittest
 import pandas as pd
 from pandas.api.types import is_float_dtype
 
-from siegfried.pdl.data_graph import *
+from siegfried.data_graph import *
 
 class TestDataGraph(unittest.TestCase):
     def setUp(self):
