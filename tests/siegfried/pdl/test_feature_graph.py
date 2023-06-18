@@ -75,8 +75,7 @@ class TestFeatureGraph(unittest.TestCase):
         self.assertEqual(len(self.df), len(df1))
         # 2 columns
         self.assertEqual(2, df1.shape[1])
-        for c in df1.columns:
-            self.assertTrue(c.startswith("bedrooms_"))
+        self.assertEqual(set(df1.columns), set(["bedrooms_2", "bedrooms_3"]))
         self.assertTrue(is_float_dtype(df1.dtypes[0]))
         
         variable_2 = CategoricalInputVariable(Variable("price"))
@@ -86,7 +85,18 @@ class TestFeatureGraph(unittest.TestCase):
         self.assertEqual(len(self.df), len(df2))
         # 3 columns
         self.assertEqual(3, df2.shape[1])
-        for c in df2.columns:
-            self.assertTrue(c.startswith("price_"))
+        self.assertEqual(set(df2.columns), set(["price_50000", "price_750000", "price_100000"]))
         self.assertTrue(is_float_dtype(df2.dtypes[0]))
+        
+    def test_concatenate_variables(self):
+        variable_1 = NumericalVariable(Variable("price"))
+        variable_2 = CategoricalInputVariable(Variable("bedrooms"))
+        variable_3 = ConcatenateVariables([variable_1, variable_2])
+        
+        df1 = variable_3.fit_transform(self.df)
+        
+        self.assertEqual(len(self.df), len(df1))
+        # 1 price, 2 bedrooms
+        self.assertEqual(3, df1.shape[1])
+        self.assertEqual(list(df1.columns), ["price", "bedrooms_2", "bedrooms_3"])
         

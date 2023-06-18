@@ -46,15 +46,11 @@ class CategoricalInputVariable:
         parent_df = self.parent.fit_transform(df)
         self.encoder = OneHotEncoder(sparse_output=False).set_output(transform="pandas")
         dummies_df = self.encoder.fit_transform(parent_df)
-        if self.prefix is None:
-            self.prefix = parent_df.columns[0]
-        dummies_df.columns = [self.prefix + "_" + c for c in dummies_df.columns]
         return dummies_df
         
     def transform(self, df):
         parent_df = self.parent.transform(df)
         dummies_df = self.encoder.transform(parent_df)
-        dummies_df.columns = [self.prefix + "_" + c for c in dummies_df.columns]
         return dummie_df
         
 class NumericalVariable:
@@ -63,7 +59,11 @@ class NumericalVariable:
         self.parent = parent
     
     def fit_transform(self, df):
-        return self.transform(df)
+        parent_df = self.parent.fit_transform(df)
+        df = parent_df.astype("float32")
+        if self.output_name is not None:
+            df.columns = [self.output_name]
+        return df
     
     def transform(self, df):
         parent_df = self.parent.transform(df)
@@ -77,46 +77,52 @@ class ConcatenateVariables:
         self.parents = parents
         
     def fit_transform(self, df):
-        return self.transform(df)
+        parent_outputs = []
+        for parent in self.parents:
+            parent_df = parent.fit_transform(df)
+            parent_outputs.append(parent_df)
+        # stack horizontally
+        return pd.concat(parent_outputs, axis=1)
     
     def transform(self, df):
         parent_outputs = []
         for parent in self.parents:
-            parent_name, parent_df = parent.get(df)
+            parent_df = parent.transform(df)
             parent_outputs.append(parent_df)
         # stack horizontally
         return pd.concat(parent_outputs, axis=1)
         
 class CategoricalOutputVariable:
-    def __init__(self, output_name, parent):
+    def __init__(self, parent, output_name=None):
         self.output_name = output_name
         self.parent = parent
     
     def fit_transform(self, df):
-        parent_name, parent_df = self.parent.get(df)
+        parent_df = self.parent.fit_transform(df)
         self.label_encoder = LabelEncoder().set_output(transform="pandas")
         encoded_df = self.label_encoder.fit_transform(parent_df)
-        output_df = encoded_df.rename({ self.column_name : self.output_name })
-        return (self.output_name, encoded_df)
+        if self.output_name is not None:
+            encoded_df.columns = [self.output_name]
+        return encoded_df
         
     def transform(self, df):
-        parent_name, parent_df = self.parent.get(df)
+        parent_name, parent_df = self.parent.transform(df)
         encoded_df = self.label_encoder.fit_transform(parent_df)
-        output_df = encoded_df.rename({ self.column_name : self.output_name })
-        return (self.output_name, encoded_df)
+        if self.output_name is not None:
+            encoded_df.columns = [self.output_name]
+        return encoded_df
 
 class OutputVariable:
-    def __init__(self, output_name, parent):
-        self.output_name = output_name
+    def __init__(self, parent):
         self.parent = parent
     
     def fit_transform(self, df):
         return self.transform(df)
         
     def transform(self, df):
-        parent_name, parent_df = self.parent.get(df)
+        parent_df = self.parent.transform(df)
         series = parent_df[parent_name]
-        return (self.output_name, series)
+        return series
         
 class DataGraph:
     def __init__(self, input_graph, output_graph):
