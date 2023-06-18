@@ -19,8 +19,8 @@ import pandas as pd
 from sklearn.preprocessing import LabelEncoder
 from sklearn.preprocessing import OneHotEncoder
 
-all = ["Variable", "CategoricalInputVariable", "NumericalVariable", "ConcatenateVariables",
-       "CategoricalOutputVariable", "OutputVariable", "DataGraph"]
+all = ["CategoricalInputVariable", "NumericalInputVariable", "ConcatenateVariables",
+       "CategoricalOutputVariable", "NumericalOutputVariable", "DataGraph"]
         
 class CategoricalInputVariable:
     def __init__(self, column_name, prefix=None):

@@ -19,9 +19,9 @@ import unittest
 import pandas as pd
 from pandas.api.types import is_float_dtype
 
-from siegfried.pdl.feature_graph import *
+from siegfried.pdl.data_graph import *
 
-class TestFeatureGraph(unittest.TestCase):
+class TestDataGraph(unittest.TestCase):
     def setUp(self):
         data = {
             "price" : [50000, 750000, 100000],

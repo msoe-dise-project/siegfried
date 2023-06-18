@@ -16,7 +16,7 @@ limitations under the License.
 
 from collections import abc
 
-from .feature_graph import *
+from .data_graph import *
 
 # Implements a recursive-descent parser for the
 # model definition language file
