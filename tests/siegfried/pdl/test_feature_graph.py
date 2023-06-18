@@ -31,23 +31,8 @@ class TestFeatureGraph(unittest.TestCase):
         }
         self.df = pd.DataFrame(data = data)
         
-    def test_variables(self):
-        variable_1 = Variable("bedrooms")
-        df1 = variable_1.fit_transform(self.df)
-        
-        self.assertEqual(len(self.df), len(df1))
-        self.assertEqual(1, df1.shape[1])
-        self.assertEqual(["bedrooms"], df1.columns)
-        
-        variable_2 = Variable("type", output_name="property_type")
-        df2 = variable_2.fit_transform(self.df)
-        
-        self.assertEqual(len(self.df), len(df2))
-        self.assertEqual(1, df2.shape[1])
-        self.assertEqual(["property_type"], df2.columns)
-        
     def test_numerical_input_variables(self):
-        variable_1 = NumericalInputVariable(Variable("bedrooms"))
+        variable_1 = NumericalInputVariable("bedrooms")
         df1 = variable_1.fit_transform(self.df)
         
         self.assertEqual(len(self.df), len(df1))
@@ -55,7 +40,7 @@ class TestFeatureGraph(unittest.TestCase):
         self.assertEqual(["bedrooms"], df1.columns)
         self.assertTrue(is_float_dtype(df1.dtypes[0]))
         
-        variable_2 = NumericalInputVariable(Variable("price"), output_name="sale_price")
+        variable_2 = NumericalInputVariable("price", output_name="sale_price")
         df2 = variable_2.fit_transform(self.df)
         
         self.assertEqual(len(self.df), len(df2))
@@ -64,7 +49,7 @@ class TestFeatureGraph(unittest.TestCase):
         self.assertTrue(is_float_dtype(df2.dtypes[0]))
         
     def test_categorical_input_variables(self):
-        variable_1 = CategoricalInputVariable(Variable("bedrooms"))
+        variable_1 = CategoricalInputVariable("bedrooms")
         df1 = variable_1.fit_transform(self.df)
         
         self.assertEqual(len(self.df), len(df1))
@@ -73,7 +58,7 @@ class TestFeatureGraph(unittest.TestCase):
         self.assertEqual(set(df1.columns), set(["bedrooms_2", "bedrooms_3"]))
         self.assertTrue(is_float_dtype(df1.dtypes[0]))
         
-        variable_2 = CategoricalInputVariable(Variable("price"))
+        variable_2 = CategoricalInputVariable("price")
         df2 = variable_2.fit_transform(self.df)
         
         self.assertEqual(len(self.df), len(df2))
@@ -83,8 +68,8 @@ class TestFeatureGraph(unittest.TestCase):
         self.assertTrue(is_float_dtype(df2.dtypes[0]))
         
     def test_concatenate_variables(self):
-        variable_1 = NumericalInputVariable(Variable("price"))
-        variable_2 = CategoricalInputVariable(Variable("bedrooms"))
+        variable_1 = NumericalInputVariable("price")
+        variable_2 = CategoricalInputVariable("bedrooms")
         variable_3 = ConcatenateVariables([variable_1, variable_2])
         df1 = variable_3.fit_transform(self.df)
         
@@ -94,17 +79,30 @@ class TestFeatureGraph(unittest.TestCase):
         self.assertEqual(list(df1.columns), ["price", "bedrooms_2", "bedrooms_3"])
         
     def test_numerical_output_variables(self):
-        variable_1 = NumericalOutputVariable(Variable("bedrooms"))
+        variable_1 = NumericalOutputVariable("bedrooms")
         series1 = variable_1.fit_transform(self.df)
         
         self.assertEqual(len(series1.shape), 1)
         self.assertEqual(len(self.df), len(series1))
         self.assertTrue(is_float_dtype(series1.dtypes))
         
-        variable_2 = NumericalOutputVariable(Variable("price"))
+        variable_2 = NumericalOutputVariable("price")
         series2 = variable_2.fit_transform(self.df)
         
         self.assertEqual(len(series2.shape), 1)
         self.assertEqual(len(self.df), len(series2))
         self.assertTrue(is_float_dtype(series2.dtypes))
+        
+    def test_categorical_output_variables(self):
+        variable_1 = CategoricalOutputVariable("bedrooms")
+        series1 = variable_1.fit_transform(self.df)
+        
+        self.assertEqual(len(series1.shape), 1)
+        self.assertEqual(len(self.df), len(series1))
+        
+        variable_2 = CategoricalOutputVariable("price")
+        series2 = variable_2.fit_transform(self.df)
+        
+        self.assertEqual(len(series2.shape), 1)
+        self.assertEqual(len(self.df), len(series2))
         

@@ -21,53 +21,41 @@ from sklearn.preprocessing import OneHotEncoder
 
 all = ["Variable", "CategoricalInputVariable", "NumericalVariable", "ConcatenateVariables",
        "CategoricalOutputVariable", "OutputVariable", "DataGraph"]
-
-class Variable:
-    def __init__(self, column_name, output_name = None):
-        self.column_name = column_name
-        if output_name is None:
-            output_name = column_name
-        self.output_name = output_name
-        
-    def fit_transform(self, df):
-        return self.transform(df)
-    
-    def transform(self, df):
-        df = df[[self.column_name]]
-        df.columns = [self.output_name]
-        return df
         
 class CategoricalInputVariable:
-    def __init__(self, parent, prefix=None):
+    def __init__(self, column_name, prefix=None):
+        self.column_name = column_name
+        if prefix is None:
+            prefix = column_name
         self.prefix = prefix
-        self.parent = parent
     
     def fit_transform(self, df):
-        parent_df = self.parent.fit_transform(df)
+        df = df[[self.column_name]]
+        df.columns = [self.prefix]
         self.encoder = OneHotEncoder(sparse_output=False).set_output(transform="pandas")
-        dummies_df = self.encoder.fit_transform(parent_df)
+        dummies_df = self.encoder.fit_transform(df)
         return dummies_df
         
     def transform(self, df):
-        parent_df = self.parent.transform(df)
-        dummies_df = self.encoder.transform(parent_df)
+        df = df[[self.column_name]]
+        dummies_df = self.encoder.transform(df)
         return dummie_df
         
 class NumericalInputVariable:
-    def __init__(self, parent, output_name=None):
+    def __init__(self, column_name, output_name=None):
+        self.column_name = column_name
         self.output_name = output_name
-        self.parent = parent
     
     def fit_transform(self, df):
-        parent_df = self.parent.fit_transform(df)
-        df = parent_df.astype("float32")
+        df = df[[self.column_name]]
+        df = df.astype("float32")
         if self.output_name is not None:
             df.columns = [self.output_name]
         return df
     
     def transform(self, df):
-        parent_df = self.parent.transform(df)
-        df = parent_df.astype("float32")
+        df = df[[self.column_name]]
+        df = df.astype("float32")
         if self.output_name is not None:
             df.columns = [self.output_name]
         return df
@@ -93,39 +81,32 @@ class ConcatenateVariables:
         return pd.concat(parent_outputs, axis=1)
         
 class CategoricalOutputVariable:
-    def __init__(self, parent, output_name=None):
-        self.output_name = output_name
-        self.parent = parent
+    def __init__(self, column_name):
+        self.column_name = column_name
     
     def fit_transform(self, df):
-        parent_df = self.parent.fit_transform(df)
-        self.label_encoder = LabelEncoder().set_output(transform="pandas")
-        encoded_df = self.label_encoder.fit_transform(parent_df)
-        if self.output_name is not None:
-            encoded_df.columns = [self.output_name]
-        return encoded_df
+        series = df[self.column_name]
+        self.label_encoder = LabelEncoder()
+        encoded_series = pd.Series(self.label_encoder.fit_transform(series.values))
+        return encoded_series
         
     def transform(self, df):
-        parent_name, parent_df = self.parent.transform(df)
-        encoded_df = self.label_encoder.fit_transform(parent_df)
-        if self.output_name is not None:
-            encoded_df.columns = [self.output_name]
-        return encoded_df
+        series = df[self.column_name]
+        encoded_series = pd.Series(self.label_encoder.transform(series.values))
+        return encoded_series
 
 class NumericalOutputVariable:
-    def __init__(self, parent):
-        self.parent = parent
+    def __init__(self, column_name):
+        self.column_name = column_name
     
     def fit_transform(self, df):
-        parent_df = self.parent.fit_transform(df)
-        df = parent_df.astype("float32")
-        series = df[df.columns[0]]
+        series = df[self.column_name]
+        series = series.astype("float32")
         return series
         
     def transform(self, df):
-        parent_df = self.parent.transform(df)
-        df = parent_df.astype("float32")
-        series = df[df.columns[0]]
+        series = df[self.column_name]
+        series = series.astype("float32")
         return series
         
 class DataGraph:
