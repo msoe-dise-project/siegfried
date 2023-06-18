@@ -13,11 +13,13 @@ format as the training data.
 ## Pipeline Definition Language (PDL)
 
 ```yaml
-target_column: price
+output_variable:
+  column: price
+  type: numerical
 ml_model:
   model_type: RandomForestClassifier
   n_estimators: 100
-features:
+input_variables:
   bedrooms_int:
     column: "bedrooms"
     type: numerical

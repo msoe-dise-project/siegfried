@@ -111,15 +111,15 @@ class NumericalOutputVariable:
         
 class DataGraph:
     def __init__(self, input_graph, output_graph):
-        self.input_graph = feature_graph
+        self.input_graph = input_graph
         self.output_graph = output_graph
         
     def fit_transform(self, df):
         input_df = self.input_graph.fit_transform(df)
         output_series = self.output_graph.fit_transform(df)
-        return output_series, input_df
+        return input_df, output_series
     
     def transform(self, df):
         input_df = self.input_graph.transform(df)
         output_series = self.output_graph.transform(df)
-        return output_series, input_df
+        return input_df, output_series

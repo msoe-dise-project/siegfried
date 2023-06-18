@@ -55,7 +55,7 @@ def train_model(pdl_fl):
     
     pprint.pprint(pipeline_def)
     
-    feature_graph = parse_pdl(pipeline_def)
+    data_graph = parse_pdl(pipeline_def)
     
 
 if __name__ == "__main__":

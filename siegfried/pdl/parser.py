@@ -21,22 +21,45 @@ from ..data_graph import *
 # Implements a recursive-descent parser for the
 # model definition language file
 
-def parse_pdl(model_def):
-    if not isinstance(model_def, abc.Mapping):
-        raise TypeError("Model definition object must be of type Mappable")
+def parse_pdl(pipeline_def):
+    if not isinstance(pipeline_def, abc.Mapping):
+        raise TypeError("Pipeline definition object must be of type Mappable")
     
     # check for required keys
-    for key in ["target_column", "ml_model", "features"]:
-        if key not in model_def:
+    for key in ["output_variable", "ml_model", "input_variables"]:
+        if key not in pipeline_def:
             raise TypeError("Missing required key '{}'".format(key))
-            
-    if not isinstance(model_def["target_column"], str):
-        raise TypeError("Target column must be specified as a string.")
     
-    parse_ml_model(model_def["ml_model"])
-    feature_graph = parse_features(model_def["features"])
+    parse_ml_model(pipeline_def["ml_model"])
+    input_graph = parse_input_variables(pipeline_def["input_variables"])
+    output_graph = parse_output_variable(pipeline_def["output_variable"])
     
-    return feature_graph
+    return DataGraph(input_graph, output_graph)
+    
+def parse_output_variable(output_variable_def):
+    if not isinstance(output_variable_def, abc.Mapping):
+        raise TypeError("Output variable definition object must be of type Mappable")
+    
+    # check for required keys
+    for key in ["column", "type"]:
+        if key not in output_variable_def:
+            raise TypeError("Missing required key '{}'".format(key))
+    
+    if not isinstance(output_variable_def["column"], str):
+        raise TypeError("Output variable column name must be specified as strings.")
+    
+    if not isinstance(output_variable_def["type"], str):
+        raise TypeError("Output variable type must be specified as strings.")
+        
+    if output_variable_def["type"] == "numerical":
+        return NumericalOutputVariable(output_variable_def["column"])
+    elif output_variable_def["type"] == "categorical":
+        return CategoricalOutputVariable(output_variable_def["column"])
+    else:
+        raise ValueError("'{}' is not one of the allowed variable types".format(feature_df["type"]))
+        
+    return None
+    
 
 def parse_ml_model(model_def):
     if not isinstance(model_def, abc.Mapping):
@@ -60,40 +83,41 @@ def parse_ml_model(model_def):
     
     return True
     
-def parse_features(features_def):
-    if not isinstance(features_def, abc.Mapping):
-        raise TypeError("ML model definition object must be of type Mappable")
+def parse_input_variables(input_variables_def):
+    if not isinstance(input_variables_def, abc.Mapping):
+        raise TypeError("Input variables definition object must be of type Mappable")
     
-    for key in features_def.keys():
+    for key in input_variables_def.keys():
         if not isinstance(key, str):
-            raise TypeError("Feature names must be specified as strings.")
+            raise TypeError("Input variable names must be specified as strings.")
     
     all_outputs = []
-    for output_name, feature_def in features_def.items():
-        feature_node = parse_feature(output_name, feature_def)
-        all_outputs.append(feature_node)
+    for output_name, input_variable_def in input_variables_def.items():
+        input_variable_node = parse_input_variable(output_name, input_variable_def)
+        all_outputs.append(input_variable_node)
     
-    return ConcatenateFeatures(all_outputs)
+    return ConcatenateVariables(all_outputs)
     
-def parse_feature(output_name, feature_def):
-    if not isinstance(feature_def, abc.Mapping):
-        raise TypeError("Feature definition object must be of type Mappable")
+def parse_input_variable(output_name, input_variable_def):
+    if not isinstance(input_variable_def, abc.Mapping):
+        raise TypeError("Input variable definition object must be of type Mappable")
     
     required_keys = ["column", "type"]
     for key in required_keys:
-        if key not in feature_def:
+        if key not in input_variable_def:
             raise TypeError("Missing required key '{}'".format(key))
-            
-    if not isinstance(feature_def["column"], str):
-        raise TypeError("Feature column names must be specified as strings.")
-        
-    input_node = InputFeature(feature_def["column"], feature_def["column"])
     
-    if feature_def["type"] == "numerical":
-        return NumericalFeature(output_name, feature_def["column"])
-    elif feature_def["type"] == "categorical":
-        return CategoricalFeature(output_name, feature_def["column"])
+    if not isinstance(input_variable_def["column"], str):
+        raise TypeError("Input variable column names must be specified as strings.")
+    
+    if not isinstance(input_variable_def["type"], str):
+        raise TypeError("Input variable types must be specified as strings.")
+        
+    if input_variable_def["type"] == "numerical":
+        return NumericalInputVariable(input_variable_def["column"], output_name=output_name)
+    elif input_variable_def["type"] == "categorical":
+        return CategoricalInputVariable(input_variable_def["column"], prefix=output_name)
     else:
-        raise ValueError("'{}' is not one of the allowed feature types".format(feature_df["type"]))
+        raise ValueError("'{}' is not one of the allowed variable types".format(feature_df["type"]))
     
     return True
