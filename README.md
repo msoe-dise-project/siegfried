@@ -34,5 +34,3 @@ input_variables:
     column: "bathrooms"
     type: categorical
 ```
-
-
