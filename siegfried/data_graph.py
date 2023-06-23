@@ -32,12 +32,14 @@ class CategoricalInputVariable:
     def fit_transform(self, df):
         df = df[[self.column_name]]
         df.columns = [self.prefix]
-        self.encoder = OneHotEncoder(sparse_output=False).set_output(transform="pandas")
+        self.encoder = OneHotEncoder(sparse_output=False, handle_unknown="ignore")
+        self.encoder.set_output(transform="pandas")
         dummies_df = self.encoder.fit_transform(df)
         return dummies_df
         
     def transform(self, df):
         df = df[[self.column_name]]
+        df.columns = [self.prefix]
         dummies_df = self.encoder.transform(df)
         return dummies_df
         
@@ -89,6 +91,11 @@ class CategoricalOutputVariable:
         self.label_encoder = LabelEncoder()
         encoded_series = pd.Series(self.label_encoder.fit_transform(series.values))
         return encoded_series
+        
+    def transform(self, df):
+        series = df[self.column_name]
+        encoded_series = pd.Series(self.label_encoder.transform(series.values))
+        return encoded_series
 
     def inverse_transform(self, series):
         encoded_series = pd.Series(self.label_encoder.inverse_transform(series.values))
@@ -99,6 +106,11 @@ class NumericalOutputVariable:
         self.column_name = column_name
 
     def fit_transform(self, df):
+        series = df[self.column_name]
+        series = series.astype("float32")
+        return series
+        
+    def transform(self, df):
         series = df[self.column_name]
         series = series.astype("float32")
         return series

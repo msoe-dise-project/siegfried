@@ -16,11 +16,17 @@ See the License for the specific language governing permissions and
 limitations under the License.
 """
 
-import pickle
 import argparse
+import json
+import pickle
 import pprint
 
+import numpy as np
 import pandas as pd
+from scipy import stats
+
+from sklearn import metrics
+from sklearn.model_selection import TimeSeriesSplit
 
 from siegfried.pdl import load_pdl
 from siegfried.pdl import parse_pdl
@@ -28,28 +34,34 @@ from siegfried.pdl import parse_pdl
 def parse_args():
     parser = argparse.ArgumentParser()
     
-    training_data_group = parser.add_mutually_exclusive_group(required=True)
+    data_group = parser.add_mutually_exclusive_group(required=True)
     
-    training_data_group.add_argument("--feather",
-                                     type=str,
-                                     help="Tabular input data in feather format")
+    data_group.add_argument("--feather",
+                            type=str,
+                            help="Tabular input data in feather format")
     
-    training_data_group.add_argument("--tsv",
-                                     type=str,
-                                     help="Tabular input data in TSV format")
+    data_group.add_argument("--tsv",
+                            type=str,
+                            help="Tabular input data in TSV format")
                                      
-    training_data_group.add_argument("--csv",
-                                     type=str,
-                                     help="Tabular input data in CSV format")
-                                     
+    data_group.add_argument("--csv",
+                            type=str,
+                            help="Tabular input data in CSV format")
+
+    
+    parser.add_argument("--serialized-model-fl",
+                        type=str,
+                        required=True)
+                        
     parser.add_argument("--pdl-fl",
                         type=str,
                         required=True,
                         help="Pipeline definition language YAML file")
     
-    parser.add_argument("--serialized-model-fl",
+    parser.add_argument("--metrics-json-fl",
                         type=str,
-                        required=True)
+                        required=True,
+                        help="Output metrics from evaluating model")
                         
     return parser.parse_args()
     
@@ -63,14 +75,72 @@ def load_data(feather_flname=None, tsv_flname=None, csv_flname=None):
     
     raise Exception("Must specify an input file.")
     
-def train_model(pdl_fl, df, pickle_fl):
+def evaluate(pipeline_def, expected, predicted):
+    if pipeline_def["output_variable"]["type"] == "numerical":
+        mse = metrics.mean_squared_error(expected,
+                                         predicted)
+        rmse = np.sqrt(mse)
+        pearsonr_result = stats.pearsonr(expected,
+                                         predicted)
+        r = pearsonr_result.statistic
+        r2 = r * r
+                              
+        results = { "mse" : mse,
+                    "rmse" : rmse,
+                    "r" : r,
+                    "r2" : r2 }
+        
+    elif pipeline_def["output_variable"]["type"] == "categorical":
+        accuracy = metrics.accuracy_score(expected,
+                                          predicted)
+        balanced_accuracy = metrics.balanced_accuracy_score(expected,
+                                                            predicted)
+        precision = metrics.precision_score(expected,
+                                            predicted)
+        recall = metrics.recall_score(expected,
+                                      predicted)
+                              
+        results = { "accuracy" : accuracy,
+                    "balanced_accuracy" : balanced_accuracy,
+                    "precision" : precision,
+                    "recall" : recall }
+    else:
+        raise Exception("Unknown output variable type.")
+        
+    return results
+    
+def train_model(pdl_fl, df, pickle_fl, metrics_fl):
     pipeline_def = load_pdl(pdl_fl)
     
     pprint.pprint(pipeline_def)
     
     data_graph = parse_pdl(pipeline_def)
     
+    tscv = TimeSeriesSplit()
+    
+    all_predictions = []
+    all_expected = []
+    for train_index, test_index in tscv.split(df.values):
+        train_df = df.iloc[train_index]
+        test_df = df.iloc[test_index]
+
+        data_graph.fit(train_df)
+        pred = data_graph.predict(test_df)
+        expected = data_graph.output_graph.transform(test_df)
+        
+        all_predictions.extend(pred)
+        all_expected.extend(expected)
+    
+    results = evaluate(pipeline_def,
+                       all_expected,
+                       all_predictions)
+                       
+    pprint.pprint(results)
+    
     data_graph.fit(df)
+                       
+    with open(metrics_fl, "w") as fl:
+        json.dump(results, fl)
     
     with open(pickle_fl, "wb") as fl:
         pickle.dump(data_graph, fl)
@@ -81,5 +151,7 @@ if __name__ == "__main__":
     df = load_data(feather_flname=args.feather,
                    tsv_flname=args.tsv,
                    csv_flname=args.csv)
+                   
+    print("Read", len(df), "records")
     
-    train_model(args.pdl_fl, df, args.serialized_model_fl)
+    train_model(args.pdl_fl, df, args.serialized_model_fl, args.metrics_json_fl)
