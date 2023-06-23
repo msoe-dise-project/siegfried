@@ -33,13 +33,6 @@ input_variables:
   bathrooms_categorical:
     column: "bathrooms"
     type: categorical
-  description_bow:
-    column: "description"
-    type: string
-    transforms:
-      - CountVectorizer:
-          analyzer: word
-          binary: true
 ```
 
 
