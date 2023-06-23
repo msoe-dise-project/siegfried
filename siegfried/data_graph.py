@@ -39,7 +39,7 @@ class CategoricalInputVariable:
     def transform(self, df):
         df = df[[self.column_name]]
         dummies_df = self.encoder.transform(df)
-        return dummie_df
+        return dummies_df
         
 class NumericalInputVariable:
     def __init__(self, column_name, output_name=None):
@@ -83,43 +83,45 @@ class ConcatenateVariables:
 class CategoricalOutputVariable:
     def __init__(self, column_name):
         self.column_name = column_name
-    
+
     def fit_transform(self, df):
         series = df[self.column_name]
         self.label_encoder = LabelEncoder()
         encoded_series = pd.Series(self.label_encoder.fit_transform(series.values))
         return encoded_series
-        
-    def transform(self, df):
-        series = df[self.column_name]
-        encoded_series = pd.Series(self.label_encoder.transform(series.values))
+
+    def inverse_transform(self, series):
+        encoded_series = pd.Series(self.label_encoder.inverse_transform(series.values))
         return encoded_series
 
 class NumericalOutputVariable:
     def __init__(self, column_name):
         self.column_name = column_name
-    
+
     def fit_transform(self, df):
         series = df[self.column_name]
         series = series.astype("float32")
         return series
-        
-    def transform(self, df):
-        series = df[self.column_name]
-        series = series.astype("float32")
+
+    def inverse_transform(self, series):
         return series
-        
+
 class DataGraph:
-    def __init__(self, input_graph, output_graph):
+    def __init__(self, input_graph, output_graph, model):
         self.input_graph = input_graph
         self.output_graph = output_graph
+        self.model = model
         
-    def fit_transform(self, df):
+    def fit(self, df):
         input_df = self.input_graph.fit_transform(df)
         output_series = self.output_graph.fit_transform(df)
-        return input_df, output_series
-    
-    def transform(self, df):
+
+        self.model.fit(input_df, output_series)
+
+    def predict(self, df):
         input_df = self.input_graph.transform(df)
-        output_series = self.output_graph.transform(df)
-        return input_df, output_series
+        predictions = self.model.predict(input_df)
+        predictions_series = pd.Series(predictions)
+        predictions_transformed = self.output_graph.inverse_transform(predictions_series)
+
+        return predictions_transformed

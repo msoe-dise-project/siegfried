@@ -16,8 +16,11 @@ See the License for the specific language governing permissions and
 limitations under the License.
 """
 
+import pickle
 import argparse
 import pprint
+
+import pandas as pd
 
 from siegfried.pdl import load_pdl
 from siegfried.pdl import parse_pdl
@@ -44,24 +47,39 @@ def parse_args():
                         required=True,
                         help="Pipeline definition language YAML file")
     
-    parser.add_argument("--serialized-output",
+    parser.add_argument("--serialized-model-fl",
                         type=str,
                         required=True)
                         
     return parser.parse_args()
     
-def train_model(pdl_fl):
+def load_data(feather_flname=None, tsv_flname=None, csv_flname=None):
+    if feather_flname is not None:
+        return pd.read_feather(feather_flname)
+    if csv_flname is not None:
+        return pd.read_csv(csv_flname)
+    if tsv_flname is not None:
+        return pd.read_tsv(tsv_flname, delimiter="\t")
+    
+    raise Exception("Must specify an input file.")
+    
+def train_model(pdl_fl, df, pickle_fl):
     pipeline_def = load_pdl(pdl_fl)
     
     pprint.pprint(pipeline_def)
     
     data_graph = parse_pdl(pipeline_def)
     
+    data_graph.fit(df)
+    
+    with open(pickle_fl, "wb") as fl:
+        pickle.dump(data_graph, fl)
 
 if __name__ == "__main__":
     args = parse_args()
     
-    train_model(args.pdl_fl)
+    df = load_data(feather_flname=args.feather,
+                   tsv_flname=args.tsv,
+                   csv_flname=args.csv)
     
-    
-    
+    train_model(args.pdl_fl, df, args.serialized_model_fl)

@@ -22,6 +22,7 @@ from sklearn.dummy import DummyClassifier
 from sklearn.dummy import DummyRegressor
 from sklearn.ensemble import RandomForestClassifier
 from sklearn.ensemble import RandomForestRegressor
+from sklearn.pipeline import Pipeline
 
 # Implements a recursive-descent parser for the
 # model definition language file
@@ -39,7 +40,7 @@ def parse_pdl(pipeline_def):
     input_graph = parse_input_variables(pipeline_def["input_variables"])
     output_graph = parse_output_variable(pipeline_def["output_variable"])
     
-    return DataGraph(input_graph, output_graph)
+    return DataGraph(input_graph, output_graph, model)
     
 def parse_output_variable(output_variable_def):
     if not isinstance(output_variable_def, abc.Mapping):

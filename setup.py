@@ -25,5 +25,5 @@ setup(name="siegfried",
       zip_safe=False,
       packages=["siegfried", "siegfried.pdl"],
       python_requires=">=3.6",
-      install_requires = ["pandas", "pyyaml", "scikit-learn"],
+      install_requires = ["pandas", "pyyaml", "scikit-learn", "pyarrow"],
       scripts=["bin/siegfried"])

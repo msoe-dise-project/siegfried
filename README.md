@@ -17,7 +17,7 @@ output_variable:
   column: price
   type: numerical
 ml_model:
-  model_type: RandomForestClassifier
+  model_type: RandomForestRegressor
   n_estimators: 100
 input_variables:
   bedrooms_int:
