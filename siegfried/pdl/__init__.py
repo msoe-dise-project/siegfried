@@ -16,9 +16,11 @@ limitations under the License.
 
 import yaml
 
-__all__ = ["load_mdl"]
+from .parser import parse_pdl
 
-def load_mdl(flname):
+__all__ = ["load_pdl", "parse_pdl"]
+
+def load_pdl(flname):
     with open(flname, "rt") as fl:
         document = yaml.load(fl, Loader=yaml.Loader)
     return document

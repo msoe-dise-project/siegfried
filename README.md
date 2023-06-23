@@ -10,32 +10,32 @@ A model definition specifies:
 1. The software outputs a serialized pipeline for generating predictions on tabular data in the same
 format as the training data.
 
-## Model Definition Language (MDL)
+## Pipeline Definition Language (PDL)
 
 ```yaml
-ml_problem:
-  label_column: price
-  model_type: regression
-model:
-  type: Random Forest
+output_variable:
+  column: price
+  type: numerical
+ml_model:
+  model_type: RandomForestRegressor
   n_estimators: 100
-features:
+input_variables:
   bedrooms_int:
     column: "bedrooms"
-    format: numerical
+    type: numerical
     transforms:
-      - impute
-      - scale
+      - SimpleImputer
+      - StandardScaler
   bedrooms_categorical:
     column: "bedrooms"
-    format: categorical
+    type: categorical
     drop_one: true
   bathrooms_categorical:
     column: "bathrooms"
-    format: categorical
+    type: categorical
   description_bow:
     column: "description"
-    format: string
+    type: string
     transforms:
       - CountVectorizer:
           analyzer: word
